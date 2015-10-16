@@ -682,7 +682,6 @@ end
 
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 794
@@ -895,7 +894,7 @@ n-signals
 n-signals
 0
 1
-1
+0
 1
 1
 NIL
