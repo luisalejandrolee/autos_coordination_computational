@@ -1,3 +1,0 @@
-generation,av_score_row,av_score_col,miscoordination_perc,coordination_B_perc,coordination_A_perc,heads_A_perc,heads_B_perc,tails_A_perc,tails_B_perc
-0,1.22375,1.2500000000000004,0.50525,0.23425,0.2605,0.124375,0.1275,0.135,0.106
-1,1.1796250000000001,1.2991249999999996,0.50425,0.188125,0.307625,0.149625,0.0965,0.158,0.091625

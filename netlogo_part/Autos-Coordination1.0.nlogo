@@ -589,7 +589,7 @@ end
 
 to print-outputs-summary ;This is to print overall tables. Is basically the same I could do on Behaviour Space.
   
-  let path-file "/Users/luisalejandrolee/Desktop/autos_coordination_computational.git/netlogo_part/outputs/"
+  let path-file "/Users/luisalejandrolee/Dropbox/Thesis Phd/Coordination autos Chapter three/outputs_to_text"
   set-current-directory path-file
  
   let summary-file (word "summary_" files-name-modifier "_states_" n-internal-states "_signal_" n-signals "_rounds_" rounds "_N_" N "_parents_" n-parents ".txt") ;Name the file for summary stats, by using the main global values
@@ -646,7 +646,6 @@ to print-outputs-turtles ;To print the outputs directly from the turtles
   
   file-close
 end
-
 
 
 
