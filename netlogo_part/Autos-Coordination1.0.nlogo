@@ -48,10 +48,18 @@ globals [
   times-of-row-preference     ;player row played B, and player column played A
   times-of-column-preference  ;player column played B, and player row played A
    
-  Heads-A-count               ;These are to measure if they are coordinating in using the signal. For example, if two autos observed "H" (heads) and both played "A", then that's a count for "Heads-A-count"
-  Heads-B-count
-  Tails-A-count
-  Tails-B-count
+  row-heads-A-count               ;Times any row player played A, given a signal = Heads. These are to measure if they are coordinating in using the signal. Don't confuse with similar turtle variable
+  row-heads-B-count
+  row-tails-A-count
+  row-tails-B-count
+  col-heads-A-count               
+  col-heads-B-count
+  col-tails-A-count
+  col-tails-B-count
+  times-heads                    ;Total times heads appeared in the generation (equal to row-heads-A-count + row-heads-B-count OR col-heads-A-count + col-heads-B-count)
+  times-tails
+  
+  ce                   ;Correlated equilibrium measure
 ]
 
 turtles-own[
@@ -75,6 +83,14 @@ turtles-own[
   ;The next are for output only, not used in the basic running of the model
   average-score        ;Overall score divided by the number of rounds and by the number of rivals (N).
   mutant?
+  
+  own-heads-A-count    ;Times the turtle played A when observed Heads (not confuse with the similar global variable, which is an aggregate for the whole population)              
+  own-heads-B-count
+  own-tails-A-count
+  own-tails-B-count
+  own-times-heads
+  own-times-tails
+  ce-individual     ;Individual measure of correlated equilibrium
 ]
 
 ;==============================================================
@@ -202,7 +218,7 @@ to go
   restart-values    ;Restarts variables like score and rivals so far, and also restarts the strategy of each turtle (set internal state and action)
   play
   ;normalise-score
-  calculate-for-outputs
+  set-some-variables ; Like average score for each turtle, and some globals for printing
   if print? = true [  ;Print files only if chosen in the interface (sometimes one just wants to run and test the model, without messing around with outputs)
     print-outputs-summary
     print-outputs-turtles
@@ -219,6 +235,14 @@ to restart-values
     set played-against []                        ;Reset value as a list
     set new-born? 0
     set mutant? false
+    
+    
+    set own-heads-A-count 0
+    set own-heads-B-count 0
+    set own-tails-A-count 0
+    set own-tails-B-count 0  
+    set own-times-heads 0
+    set own-times-tails 0    
     ;set played-against (lput self played-against) ;Include this line if don't want to include playing against a clone. Use for testing the software coding, not the model itself
     
     ;The next two lines seem redundant (because was used during setup as well, but is necessary because the new offspring created in last round don't have these variables set
@@ -231,11 +255,18 @@ to restart-values
   set times-of-miscoordination 0
   set times-of-row-preference 0
   set times-of-column-preference 0
+  
+  set row-heads-A-count 0
+  set row-heads-B-count 0
+  set row-tails-A-count 0
+  set row-tails-B-count 0
+  set col-heads-A-count 0             
+  set col-heads-B-count 0
+  set col-tails-A-count 0
+  set col-tails-B-count 0
+  set times-heads 0
+  set times-tails 0
 
-  set Heads-A-count 0
-  set Heads-B-count 0
-  set Tails-A-count 0
-  set Tails-B-count 0
 end
 
 
@@ -271,7 +302,12 @@ to play
           ifelse player1 != player2                             ;In the paper, each strategy plays against a clone once. This conditional is to sum the payoffs differently when playing the clone
           [set overall-score (overall-score + one-shot-score)]   ;Sums current score to player 1. CHECK one-shot-score REPORTER TO CHANGE PAYOFFS
           [set overall-score (overall-score + ((one-shot-score + one-shot-score2) / 2))]   ;If playing against self, take the average payoffs
-          count-equilibrium-played ; This reporter updates the globals for output, the ones keeping track of how many times each equilibrium or miscoordination happened in a generation
+          
+          ;CALCULATE SOME MEASURE (PERCENTAGES OF MISCOORDINATION, ETC).
+          
+          correlated-eq-measure-row
+          ask player2 [correlated-eq-measure-col]
+          calculate-for-equilibrium ; This reporter updates the globals for output, the ones keeping track of how many times each equilibrium or miscoordination happened in a generation
 
 
 
@@ -419,13 +455,32 @@ to normalise-score
 end
 
 
-to calculate-for-outputs
+to set-some-variables
   ; Calculate average-score: this is the average payoff per generation, per round.
   ask turtles [
     set average-score (overall-score / (rounds * N))
   ]
+  set times-heads (row-heads-A-count + row-heads-B-count)   ;Total times heads appeared
+  set times-tails (row-tails-A-count + row-tails-B-count)
+  
+  ;Correlated equilibrium measure
+  set ce ((row-heads-A-count / times-heads) * (col-heads-A-count / times-heads) * (row-tails-B-count / times-tails) * (col-tails-B-count / times-tails) + (row-heads-B-count / times-heads) * (col-heads-B-count / times-heads) * (row-tails-A-count / times-tails) * (col-tails-A-count / times-tails))
+  
+  ;Individual correlated equilibrium measure
+  ask turtles[
+;    show (word "own-heads-A-count = " own-heads-A-count)
+;    show (word "own-tails-B-count = " own-tails-B-count)
+;    show (word "own-heads-B-count = " own-heads-B-count)
+;    show (word "own-tails-A-count = " own-tails-A-count)
+;    show (word "own-times-heads = " own-times-heads)
+;    show (word "own-times-tails = " own-times-tails)
+    
+    set ce-individual ((own-heads-A-count / own-times-heads) * (own-tails-B-count / own-times-tails) + (own-heads-B-count / own-times-heads) * (own-tails-A-count / own-times-tails))
+  ]
   
 end
+
+
 to choose-parents-list    ;Organises potential parents in a list, and kills the rest of the agents, for both populations
   
   ;Choose parents list for population row
@@ -573,18 +628,62 @@ to-report exogenous-signal
   
 end
 
-to count-equilibrium-played
+to calculate-for-equilibrium ;called by player 1, which is from population "row"
   if action != rival-action [set times-of-miscoordination times-of-miscoordination + 1] ;If chose different action, count a miscoordination
   if action = "B" and rival-action = "B" [set times-of-row-preference times-of-row-preference + 1]; If both played B, is the equilibrium were row gets the high payoffs
   if action = "A" and rival-action = "A" [set times-of-column-preference times-of-column-preference + 1]; If both played A, is the equilibrium were column gets the high payoffs
-  
-  ;To count the number of times they coordinate on the signal
+end
+
+to correlated-eq-measure-row  
   if n-signals = 1[
-    if signal-received = "H" and action = "A" and rival-action = "A" [set Heads-A-count Heads-A-count + 1]
-    if signal-received = "H" and action = "B" and rival-action = "B" [set Heads-B-count Heads-B-count + 1]
-    if signal-received = "T" and action = "A" and rival-action = "A" [set Tails-A-count Tails-A-count + 1]
-    if signal-received = "T" and action = "B" and rival-action = "B" [set Tails-B-count Tails-B-count + 1]
+    if signal-received = "H" and action = "A" [
+      set row-heads-A-count row-heads-A-count + 1   ;Update total of times any row player played A when observed Heads
+      set own-times-heads own-times-heads + 1       ;Update times this player observed Heads
+      set own-heads-A-count own-heads-A-count + 1   ;Update times this player played A, given that Heads showed up
+    ] 
+    if signal-received = "H" and action = "B" [
+      set row-heads-B-count row-heads-B-count + 1
+      set own-times-heads own-times-heads + 1
+      set own-heads-B-count own-heads-B-count + 1
+    ]
+    if signal-received = "T" and action = "A" [
+      set row-tails-A-count row-tails-A-count + 1
+      set own-times-tails own-times-tails + 1
+      set own-tails-A-count own-tails-A-count + 1
+    ]
+    if signal-received = "T" and action = "B" [
+      set row-tails-B-count row-tails-B-count + 1
+      set own-times-tails own-times-tails + 1
+      set own-tails-B-count own-tails-B-count + 1
+    ]
   ]
+end   
+    
+to correlated-eq-measure-col   
+  if n-signals = 1[   
+    if signal-received = "H" and action = "A" [
+      set col-heads-A-count col-heads-A-count + 1
+      set own-times-heads own-times-heads + 1
+      set own-heads-A-count own-heads-A-count + 1
+    ]
+    if signal-received = "H" and action = "B" [
+      set col-heads-B-count col-heads-B-count + 1
+      set own-times-heads own-times-heads + 1
+      set own-heads-B-count own-heads-B-count + 1
+    ]
+    if signal-received = "T" and action = "A" [
+      set col-tails-A-count col-tails-A-count + 1
+      set own-times-tails own-times-tails + 1
+      set own-tails-A-count own-tails-A-count + 1
+    ]
+    if signal-received = "T" and action = "B" [
+      set col-tails-B-count col-tails-B-count + 1
+      set own-times-tails own-times-tails + 1
+      set own-tails-B-count own-tails-B-count + 1
+    ]
+    
+  ]
+  
 end
 
 to print-outputs-summary ;This is to print overall tables. Is basically the same I could do on Behaviour Space.
@@ -598,10 +697,11 @@ to print-outputs-summary ;This is to print overall tables. Is basically the same
       file-delete summary-file ; Delete the file (to overwrite it) only in the first generation
     ]
     file-open summary-file
-    file-type "generation,av_score_row,av_score_col,miscoordination_perc,coordination_B_perc,coordination_A_perc,heads_A_perc,heads_B_perc,tails_A_perc,tails_B_perc\n" ;Variables to include
+    ;Print headers of the variables to print (match with the order below)
+    file-type "generation,av_score_row,av_score_col,miscoordination_perc,coordination_B_perc,coordination_A_perc,row_heads_A,row_heads_B,row_tails_A,row_tails_B,col_heads_A,col_heads_B,col_tails_A,col_tails_B, times_heads, times_tails, ce\n" ;Variables to include
     file-close
   ]
-  
+  ; Print variables (make sure they are in the same order as in the line above)
   file-open summary-file
   file-type ticks file-type","
   file-type mean [average-score] of turtles with [population-type = "row"] file-type ","
@@ -609,11 +709,17 @@ to print-outputs-summary ;This is to print overall tables. Is basically the same
   file-type times-of-miscoordination / (rounds * N * N) file-type ","
   file-type times-of-row-preference / (rounds * N * N) file-type ","
   file-type times-of-column-preference / (rounds * N * N)file-type ","
-  file-type Heads-A-count / (rounds * N * N) file-type ","
-  file-type Heads-B-count / (rounds * N * N) file-type ","
-  file-type Tails-A-count / (rounds * N * N) file-type ","
-  file-type Tails-B-count / (rounds * N * N) file-type "\n" ;If more variables added, replace the \n by a comma. The carriage return should only go with the final reported variable
-  
+  file-type row-heads-A-count file-type ","
+  file-type row-heads-B-count file-type ","
+  file-type row-tails-A-count file-type ","
+  file-type row-tails-B-count file-type ","
+  file-type col-heads-A-count file-type ","
+  file-type col-heads-B-count file-type ","
+  file-type col-tails-A-count file-type ","
+  file-type col-tails-B-count file-type ","
+  file-type times-heads file-type ","
+  file-type times-tails file-type ","
+  file-type ce file-type "\n" ;If more variables added, replace the \n by a comma. The carriage return should only go with the final reported variable
   file-close
 end
 
@@ -626,7 +732,7 @@ to print-outputs-turtles ;To print the outputs directly from the turtles
     ]
       
     file-open strategies-file
-    file-type "generation,ID,population,score,auto_long\n" ;Variables to include. Need carriage return at the end in case more variables are included
+    file-type "generation,ID,population,score,auto_long, ce_individual\n" ;Variables to include. Need carriage return at the end in case more variables are included
     file-close
   ]
   
@@ -638,27 +744,14 @@ to print-outputs-turtles ;To print the outputs directly from the turtles
     file-type who file-type ","
     file-type population-type file-type ","
     file-type average-score file-type ","
-    file-type strategy file-type "\n" ;Remeber carriage return should go only with the last variable, so if add more, change it for comma or organise properly
-    
+    file-type strategy file-type ","
+    file-type ce-individual file-type "\n" ;Remeber carriage return should go only with the last variable, so if add more, change it for comma or organise properly
     
     ;file-type file-type ","    
   ]
   
   file-close
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -760,7 +853,7 @@ INPUTBOX
 374
 165
 rounds
-5
+20
 1
 0
 Number
@@ -893,7 +986,7 @@ n-signals
 n-signals
 0
 1
-0
+1
 1
 1
 NIL
@@ -960,15 +1053,12 @@ NIL
 0.0
 10.0
 0.0
-10.0
+1.5
 true
 true
 "" ""
 PENS
-"Heads-A" 1.0 0 -16777216 true "" "plot Heads-A-count"
-"Heads-B" 1.0 0 -7500403 true "" "plot Heads-B-count"
-"Tails-A" 1.0 0 -2674135 true "" "plot Tails-A-count"
-"Tails-B" 1.0 0 -955883 true "" "plot Tails-B-count"
+"ce measure" 1.0 0 -5298144 true "" "plot ce"
 
 SWITCH
 93
@@ -997,7 +1087,7 @@ INPUTBOX
 255
 465
 files-name-modifier
-trial
+signalce
 1
 0
 String
