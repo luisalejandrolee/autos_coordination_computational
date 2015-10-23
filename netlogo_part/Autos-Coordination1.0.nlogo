@@ -304,9 +304,10 @@ to play
           [set overall-score (overall-score + ((one-shot-score + one-shot-score2) / 2))]   ;If playing against self, take the average payoffs
           
           ;CALCULATE SOME MEASURE (PERCENTAGES OF MISCOORDINATION, ETC).
-          
-          correlated-eq-measure-row
-          ask player2 [correlated-eq-measure-col]
+          if n-signals = 1 [
+            correlated-eq-measure-row
+            ask player2 [correlated-eq-measure-col]
+          ]
           calculate-for-equilibrium ; This reporter updates the globals for output, the ones keeping track of how many times each equilibrium or miscoordination happened in a generation
 
 
@@ -460,12 +461,15 @@ to set-some-variables
   ask turtles [
     set average-score (overall-score / (rounds * N))
   ]
-  set times-heads (row-heads-A-count + row-heads-B-count)   ;Total times heads appeared
-  set times-tails (row-tails-A-count + row-tails-B-count)
   
-  ;Correlated equilibrium measure
-  set ce ((row-heads-A-count / times-heads) * (col-heads-A-count / times-heads) * (row-tails-B-count / times-tails) * (col-tails-B-count / times-tails) + (row-heads-B-count / times-heads) * (col-heads-B-count / times-heads) * (row-tails-A-count / times-tails) * (col-tails-A-count / times-tails))
+  if n-signals = 1 [  ;Measure only if signal is used
+    set times-heads (row-heads-A-count + row-heads-B-count)   ;Total times heads appeared
+    set times-tails (row-tails-A-count + row-tails-B-count)
   
+    ;Correlated equilibrium measure
+    set ce ((row-heads-A-count / times-heads) * (col-heads-A-count / times-heads) * (row-tails-B-count / times-tails) * (col-tails-B-count / times-tails) + (row-heads-B-count / times-heads) * (col-heads-B-count / times-heads) * (row-tails-A-count / times-tails) * (col-tails-A-count / times-tails))
+ 
+ 
   ;Individual correlated equilibrium measure
   ask turtles[
 ;    show (word "own-heads-A-count = " own-heads-A-count)
@@ -477,6 +481,7 @@ to set-some-variables
     
     set ce-individual ((own-heads-A-count / own-times-heads) * (own-tails-B-count / own-times-tails) + (own-heads-B-count / own-times-heads) * (own-tails-A-count / own-times-tails))
   ]
+ ]
   
 end
 
@@ -772,8 +777,6 @@ end
 
 
 
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 794
@@ -942,7 +945,7 @@ INPUTBOX
 520
 351
 n-internal-states
-8
+4
 1
 0
 Number
@@ -986,7 +989,7 @@ n-signals
 n-signals
 0
 1
-1
+0
 1
 1
 NIL
@@ -1087,7 +1090,7 @@ INPUTBOX
 255
 465
 files-name-modifier
-signalce
+trial1
 1
 0
 String

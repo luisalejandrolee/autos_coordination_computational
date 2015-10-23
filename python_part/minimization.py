@@ -129,3 +129,12 @@ def to_format_netlogo_auto(auto_clean):
         if auto_clean[i] != 'A' and auto_clean[i] != 'B':
             auto_clean[i] = int(auto_clean[i])
     return auto_clean
+
+def update_state_no_signal(auto, current_state, rival_action):
+    if rival_action == "A":
+        a = 0
+    elif rival_action == "B":
+        a = 1
+    new_action = auto[current_state][1][a]
+    
+    return new_action
