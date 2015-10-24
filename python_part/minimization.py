@@ -136,5 +136,40 @@ def update_state_no_signal(auto, current_state, rival_action):
     elif rival_action == "B":
         a = 1
     new_action = auto[current_state][1][a]
-    
+
     return new_action
+
+
+def create_joint_machine_no_signal(auto0, auto1):
+    #Initialize variables
+    size = len(auto0) * len(auto1) + 1  #Max states before joint machine cycles
+    states = [([None] * size), ([None] * size)]
+    actions = [([None] * size), ([None] * size)]
+    auto0_state = 0 #Current state of the machines (intial is zero)
+    auto1_state = 0
+
+    metastate = -1
+    cyclestart = -1
+    cycle = False
+
+    #Detect cycle (i.e. when the same pair of states appears)
+    while not cycle:
+        metastate += 1
+        states[0][metastate] = auto0_state #Add current state of autos
+        states[1][metastate] = auto1_state
+        actions[0][metastate] = auto0[auto0_state][0] #Add current action of autos (based on current state)
+        actions[1][metastate] = auto1[auto1_state][0] #Remember auto1 is the minimized auto
+
+        #Move autos to next state based on action of other
+        auto0_state = update_state_no_signal(auto0, auto0_state, actions[1][metastate])
+        auto1_state = update_state_no_signal(auto1, auto1_state, actions[0][metastate])
+
+        #Now cycle to check if we have been at the two new states before
+        for ms in xrange(metastate): #previous metastates
+            if (states[0][metastate] == states [0][ms]) and (states[1][metastate] == states [1][ms]):#cycle has started
+                cyclestart = ms
+                cycle = True
+
+    #Save joint machine and generation as list (to later make them a dataframe)
+    jm = {"metastate": metastate, "cyclestart": cyclestart, "states": states, "actions": actions} #joint machine
+    return jm
