@@ -1,0 +1,98 @@
+Here are the definitions of the variables used in the main data structures in the "main()" file.
+These are the main dataframes used:
+
+1) df_strat: data for each machine across all generations (80 autos per generation)
+2) df_jms: data for each joint machine created in each generation (1600 per generation,
+because there's one joint machine for each interaction, so is 40 x 40)
+3) df_sum: data for averages across generation. One observation per generation
+
+
+
+df_strat:
+
+
+generation: time variable (or "ticks" in netlogo language)
+
+ID: unique identifier of the machine
+
+population: "column" or "row", for which population the machines belongs to
+
+score: average score of the machine in that generation
+
+auto_long: the string of the complete machine in raw format (imported from netlogo)
+
+cd_individual: individual measure of correlated equilibrium (from 0 to 1, with 0
+not following the signal at all, 1 perfectly)
+
+canon_autos: machine in canonical form (i.e. ordered with starting state always zero
+and in consequent access. Also stripped from unused states). Formatted as a numpy array
+min_autos: minimized machine
+
+access_states: states accessible by the machine (measured as number of states in
+the canonical machine, or canon_autos)
+
+min_states: states in the minimized machine (number of states in min_autos)
+
+used_states: list with lenght equal to min_states. Works as follows: if say, position
+number 2 is equal to 1, means that state number 2 of the minimized machine was accessed
+in that generation. If position 2 equals 0, means that state number 2 of the minimized
+machines was not accessed (i.e. not in any joint machine of that generation)
+
+
+
+
+
+df_sum
+
+
+generation: time variable
+
+av_score_row: average score of row population
+av_score_col: same for column
+
+miscoordination_perc: percentage of times the machines played A and B, or B and A
+
+coordination_B_perc: percentage of times both machines played B
+coordination_A_perc: same for A
+
+row_heads_A: number of times per generation that a machine from "row" population,
+played "A" when the signal observed was "Heads"
+row_heads_B:same for "Heads" and "B"
+row_tails_A: same
+row_tails_B: same
+col_heads_A: same
+col_heads_B: same
+col_tails_A: same
+col_tails_B: same
+
+times_heads: number of total times "Heads" was the received signal
+times_tails: same for "Tails"
+
+ce: aggregate measure of correlated equilibrium. Explanation here:
+
+let p(1=A|s=H) give the observed probability of player 1 playing A (plays are A or B) given signal H (signals are H or T).
+The measure of a correlated equilibrium, ce, is:
+
+ce = p(1=A|s=H) x p(2=A|s=H) x p(1=B|s=T) x p(2=B|s=T) + p(1=B|s=H) x p(2=B|s=H) x p(1=A|s=T) x p(2=A|s=T)
+
+This measure goes from 0 to 1, with a 1 indicating a perfect correlated signaling equilibrium.
+(One can simplify the above by recognizing that p(1=B|s=H) = 1 - p(1=A|s=H, etc.)
+
+
+
+
+
+
+
+df_jms
+
+
+generation: time variable
+
+jm: joint machine (not minimized). Is defined as a dictionary containing "states",
+"actions", "metastate" and "cyclestart". Both "states" and "actions" contain two lists,
+one per each auto forming the metamachine, with the states and outputs of each one
+in the order they are visited when the two machines play each other. "metastate" (is an
+integer) contains the number of states of the joint machine (i.e. possible combination of states form the
+two individual machines). "cyclestart" (is an integer) contains which metastestate the
+machine starts to cycle

@@ -142,9 +142,10 @@ def update_state_no_signal(auto, current_state, rival_action):
 
 def create_joint_machine_no_signal(auto0, auto1):
     #Initialize variables
+    temp = [None, None]
     size = len(auto0) * len(auto1) + 1  #Max states before joint machine cycles
-    states = [([None] * size), ([None] * size)]
-    actions = [([None] * size), ([None] * size)]
+    states = [temp[:] for i in xrange(size)]
+    actions = [temp[:] for i in xrange(size)]
     auto0_state = 0 #Current state of the machines (intial is zero)
     auto1_state = 0
 
@@ -155,18 +156,18 @@ def create_joint_machine_no_signal(auto0, auto1):
     #Detect cycle (i.e. when the same pair of states appears)
     while not cycle:
         metastate += 1
-        states[0][metastate] = auto0_state #Add current state of autos
-        states[1][metastate] = auto1_state
-        actions[0][metastate] = auto0[auto0_state][0] #Add current action of autos (based on current state)
-        actions[1][metastate] = auto1[auto1_state][0] #Remember auto1 is the minimized auto
+        states[metastate][0] = auto0_state #Add current state of autos
+        states[metastate][1] = auto1_state
+        actions[metastate][0] = auto0[auto0_state][0] #Add current action of autos (based on current state)
+        actions[metastate][1] = auto1[auto1_state][0] #Remember auto1 is the minimized auto
 
         #Move autos to next state based on action of other
-        auto0_state = update_state_no_signal(auto0, auto0_state, actions[1][metastate])
-        auto1_state = update_state_no_signal(auto1, auto1_state, actions[0][metastate])
+        auto0_state = update_state_no_signal(auto0, auto0_state, actions[metastate][1])
+        auto1_state = update_state_no_signal(auto1, auto1_state, actions[metastate][0])
 
         #Now cycle to check if we have been at the two new states before
         for ms in xrange(metastate): #previous metastates
-            if (states[0][metastate] == states [0][ms]) and (states[1][metastate] == states [1][ms]):#cycle has started
+            if (states[metastate][0] == states [ms][0]) and (states[metastate][1] == states [ms][1]):#cycle has started
                 cyclestart = ms
                 cycle = True
 
