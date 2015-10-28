@@ -171,6 +171,87 @@ def create_joint_machine_no_signal(auto0, auto1):
                 cyclestart = ms
                 cycle = True
 
+    states = states[:metastate+1] #delete the empty states
+    actions = actions[:metastate+1]
     #Save joint machine and generation as list (to later make them a dataframe)
     jm = {"metastate": metastate, "cyclestart": cyclestart, "states": states, "actions": actions} #joint machine
     return jm
+
+
+def minimize_joint_machine_no_signal(mm):
+    #print "full metmachine = ", mm
+    
+    #Trans contains the transition structure of the joint machine. For example, the 1 in position 0 indicates that in
+    #state 0 the machine transitions to state 1, and so on. This makes the structure quite simple (linear).
+    #Then the final state is linked to transition towards the one where the cycle starts.
+
+    #Create transition structure
+    tstates = mm["metastate"] + 1 #number of states of the metamachine (mm)
+    trans = [st+1 for st in xrange(tstates)]
+    trans[mm["metastate"]] = mm["cyclestart"]
+    #print "trans = ", trans, "\n"
+
+    #Create tstates*tstates equivalence matrix
+    temp = [False for i in xrange(tstates)]
+    equiv = [temp[:] for i in xrange(tstates)]#Will contain True for pairs of states that are potentially equivalent
+
+    for s1 in xrange(tstates):
+        for s2 in xrange(s1, tstates): #all possible states combinations
+            if mm["actions"][s1] == mm["actions"][s2]: #actions in both states of the joint machine are the same
+                equiv[s1][s2] = True
+                equiv[s2][s1] = True #Not needed, but just in case (has low cost)
+
+    #Use equivalence matrix to find the truly equivalent states
+    while True: #repeat until changes becomes True
+        changes = False
+        #Create tstates*tstates equivalence matrix ("False" in all coordinates)
+        temp1 = [False for i in xrange(tstates)]
+        newequiv = [temp1[:] for i in xrange(tstates)]
+
+        for s1 in xrange(tstates):
+            for s2 in xrange(s1, tstates):#all possible state combinations
+                if (equiv[s1][s2]): #a potential mapping exists
+                    #print "s1 = ", s1, "s2 = ", s2
+                    sametrans = True
+                    if (not equiv[trans[s1]][trans[s2]]):#...ask if their transitions go to equivalent states
+                        sametrans = False
+                    newequiv[s1][s2] = sametrans
+                    newequiv[s2][s1] = sametrans #Not needed but just in case (has low cost)
+                    if (not sametrans):
+                        changes = True # at least one change made, so iterate again
+        equiv = newequiv
+        if not changes:
+            #print "equiv = ", equiv
+            break
+
+    #equiv now has the truly equivalent states of the machine, so remap them into a new statemap
+    statemap = [sm for sm in xrange(tstates)] # Will be used like this: --> statemap[old_State] = new_state
+
+    for s1 in xrange(tstates-1): #all possible relevant state combinations
+            for s2 in xrange(s1+1, tstates):
+                #print "s1 = ", s1, "s2 = ", s2
+                if (equiv[s1][s2]): #states are truly equivalent
+                    statemap[s2] = statemap[s1] #remaps, while capturing any earlier remaps
+    #print "statemap = ", statemap
+
+    #Final minimization
+    #as the joint machines (with no signal) are linear, is easy to minimize from here
+    neededstates = 0 #states needed for the minimized joint machine
+    for sm in xrange(tstates):
+        if statemap[sm] > neededstates:
+            neededstates = statemap[sm] #finds the maximum number in statemap?
+    neededstates += 1 #to account for position zero
+
+    temp2 = [None for i in xrange(neededstates)]
+    min_jm = {"actions": temp2[:], "states": temp2[:], "cyclestart": None, "tstates": neededstates}
+    transitions = temp2[:]
+    currentstate = 0
+    for sm in xrange(tstates):
+        if (statemap[sm] == currentstate):
+            min_jm["states"][currentstate] = list(mm["states"][sm]) #probably useless to track the states...
+            min_jm["actions"][currentstate] = list(mm["actions"][sm])
+            transitions[currentstate] = statemap[trans[sm]]
+            currentstate += 1
+    min_jm["cyclestart"] = transitions[neededstates-1] #save where the cycle starts
+
+    return min_jm
