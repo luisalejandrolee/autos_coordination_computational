@@ -271,3 +271,12 @@ def minimize_joint_machine_no_signal(mm):
 
 """
     return min_jm
+
+def min_jm_no_signal_to_string(jm):
+    cyclestart = jm[1] #unpack actions and cyclestart
+    actions = jm[0]
+    actions = ["".join(x) for x in actions] #make a string of each pair of actions
+    nocycle = "  ".join(actions[:cyclestart]) #string the cycle and non cycle part
+    cycle = "  ".join(actions[cyclestart:])
+    actions = nocycle+' >> '+cycle+' <<' #concatenate
+    return actions

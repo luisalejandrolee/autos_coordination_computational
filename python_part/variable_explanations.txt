@@ -4,8 +4,8 @@ These are the main dataframes used:
 1) df_strat: data for each machine across all generations (80 autos per generation)
 2) df_jms: data for each joint machine created in each generation (1600 per generation,
 because there's one joint machine for each interaction, so is 40 x 40)
-3) df_sum: data for averages across generation. One observation per generation
-
+3) df_sum: (then named "summary")data for averages across generation. One observation per generation
+4) freqjm: for the organized frequencies of minimized metamachines
 
 
 df_strat:
@@ -42,7 +42,7 @@ machines was not accessed (i.e. not in any joint machine of that generation)
 
 
 
-df_sum
+df_sum (named later 'summary', which drops variables to create ce, keeping only ce)
 
 
 generation: time variable
@@ -96,3 +96,13 @@ in the order they are visited when the two machines play each other. "metastate"
 integer) contains the number of states of the joint machine (i.e. possible combination of states form the
 two individual machines). "cyclestart" (is an integer) contains which metastestate the
 machine starts to cycle
+
+min_jms: minimized joint machine (kept as a tuple) containing the actions and where the cycle starts
+
+freqjm
+
+
+min_jms: minimized joint machine
+freq: frequency by machine by generation
+freq_perc: in percentage
+jmstring: the machine as a string (so is easier on the eye)
