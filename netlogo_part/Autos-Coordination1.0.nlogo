@@ -703,7 +703,7 @@ to print-outputs-summary ;This is to print overall tables. Is basically the same
     ]
     file-open summary-file
     ;Print headers of the variables to print (match with the order below)
-    file-type "generation,av_score_row,av_score_col,miscoordination_perc,coordination_B_perc,coordination_A_perc,row_heads_A,row_heads_B,row_tails_A,row_tails_B,col_heads_A,col_heads_B,col_tails_A,col_tails_B, times_heads, times_tails, ce\n" ;Variables to include
+    file-type "generation,av_score_row,av_score_col,miscoordination_perc,coordination_B_perc,coordination_A_perc,row_heads_A,row_heads_B,row_tails_A,row_tails_B,col_heads_A,col_heads_B,col_tails_A,col_tails_B,times_heads,times_tails,ce\n" ;Variables to include
     file-close
   ]
   ; Print variables (make sure they are in the same order as in the line above)
@@ -757,7 +757,6 @@ to print-outputs-turtles ;To print the outputs directly from the turtles
   
   file-close
 end
-
 
 
 
