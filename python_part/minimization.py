@@ -18,7 +18,7 @@ import copy
 
 # Create an empty auto as a numpy array
 def new_empty_auto(n_obs, n_states):
-    dtype = [('actions', 'S1'), ('transitions', np.int32, n_obs)] # structure for "normal_auto" variable
+    dtype = [('actions', 'S2'), ('transitions', np.int32, n_obs)] # structure for "normal_auto" variable
     new_auto = np.zeros(n_states, dtype) # initialize normal_auto (make all transitions zero)
     new_auto['actions'] = 'x' # Make all actions x
     return new_auto
@@ -280,3 +280,71 @@ def min_jm_no_signal_to_string(jm):
     cycle = "  ".join(actions[cyclestart:])
     actions = nocycle+' >> '+cycle+' <<' #concatenate
     return actions
+
+#returns the next state for an auto, given current_state, rival's action and signal
+def update_state_with_signal(auto, current_state, rival_action, signal):
+    if rival_action == "A" and signal=='H':
+        trans = 0
+    elif rival_action == "B" and signal=='H':
+        trans = 1
+    elif rival_action == "A" and signal=='T':
+        trans = 2
+    elif rival_action == "B" and signal=='T':
+        trans = 3
+    new_state = auto[current_state][1][trans]
+
+    return new_state
+
+
+
+def create_joint_machine_with_signal(auto0, auto1):
+    size = len(auto0) * len(auto1) #one metastate for each combination of states of component autos
+    states = [[None,None] for i in xrange(size)]#all pairs of states of component autos. The position in list 
+                                            #uniquely identifies each possible combination
+    
+    jm=[[None,None,None] for i in xrange(size)]#joint machine (each state is action(e.g. AA or BA),
+                                            #transitions (first for signal "Heads", then for "Tails")), and
+                                            #states (which keeps the individual autos states for use later)
+            
+    dtype = [('actions', 'S2'), ('transitions', np.int32, 2),('states', np.int32, 2)]
+    jm = np.zeros(size, dtype)
+    jm['actions'] = 'XX'
+    
+    #Fill states and actions
+    i=0
+    for ix0, st0 in enumerate(auto0):
+        for ix1, st1 in enumerate(auto1):#all combinations of states of individual autos
+            states[i]=[ix0,ix1]
+            jm[i]['actions']=[st0['actions']+st1['actions']] #get actions on the jm
+            jm[i]['states'][0]=ix0#keep states of current metastate in the jm (same as in "states")
+            jm[i]['states'][1]=ix1
+            i+=1
+
+    #Fill the joint machine transitions
+    for ix,ms in enumerate(jm[:]): #all meta states of the joint machine
+        auto0_state=states[ix][0] #current states of each auto, for the given metastate
+        auto1_state=states[ix][1]
+        
+        auto0_action=ms['actions'][0] #current action of each auto (taken from the jm data)
+        auto1_action=ms['actions'][1]
+        
+        #Get next state (transition) for each auto, based on current state, rival's action and signal
+        auto0_next_st_heads=update_state_with_signal(auto0, auto0_state, auto1_action, 'H')#auto,state,rival_action,signal
+        auto1_next_st_heads=update_state_with_signal(auto1, auto1_state, auto0_action, 'H')
+        auto0_next_st_tails=update_state_with_signal(auto0, auto0_state, auto1_action, 'T')
+        auto1_next_st_tails=update_state_with_signal(auto1, auto1_state, auto0_action, 'T')
+        
+        indiv_trans_heads=[auto0_next_st_heads,auto1_next_st_heads]#if Heads, each autos transitions
+        indiv_trans_tails=[auto0_next_st_tails,auto1_next_st_tails]
+        
+        #the key is that each possible combination of states is uniquely associated with one position
+        #in the "states" list. So given the two individual states, "states.index" gives the position of the state
+        #which is interpreted as the transition for the metamachine
+        meta_trans_heads=states.index(indiv_trans_heads)
+        meta_trans_tails=states.index(indiv_trans_tails)
+        
+        jm[ix]['transitions'][0]=meta_trans_heads#copy metatransitions to jm
+        jm[ix]['transitions'][1]=meta_trans_tails
+ 
+    return jm
+
