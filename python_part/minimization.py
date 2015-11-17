@@ -337,3 +337,72 @@ def create_joint_machine_with_signal(auto0, auto1):
  
     return jm
 
+def epoch_matrix(summary,regime,epoch_window,epoch_tolerance):
+    epochs = pd.DataFrame(columns=['epoch','duration','start','end']) #to be filled with all epoch information
+    switch = False #is there an epoch already started?
+    length = 0 #of current epoch
+    current_epoch = {'epoch': '', 'duration': 0, 'start': 0, 'end': 0}#will store info of each epoch
+
+    for t,ep in enumerate(summary[regime]):#all generation (or regimes)
+        if t >= epoch_window: #intial observations not considered due to lagged window
+            lags = [summary[regime][tt] for tt in xrange(t-epoch_window, t)] #window of past generations
+
+            #BEGIN:An epoch begins. This is when switch is False (no epoch has started) and epoch criteria is fulfilled
+            if lags.count(ep) >= (epoch_window-epoch_tolerance) and switch == False: #an epoch begins
+                switch = True
+                current_epoch['epoch'] = ep
+                length += 1
+                current_epoch['duration'] = length
+                current_epoch['start'] = t
+                #print 'begins ', current_epoch
+
+            #CONTINUE:An epoch already is going, and criteria is met
+            elif lags.count(ep) >= (epoch_window-epoch_tolerance) and switch == True: #an epoch continues
+                length += 1
+                current_epoch['duration'] = length           
+                #print 'continues ', current_epoch
+
+
+            #END:An epoch is going, but criteria is not met. This could also mean there is an exception.
+            #An exception is a regime that shows up few times in a row (formally,less than the epoch_tolerance).
+            #The objective is that an exception doesn't end up and epoch. Initially, exceptions end them. However,
+            #This is dealt with later after the whole dataframe (epochs) is constructed.
+            elif lags.count(ep) < (epoch_window-epoch_tolerance) and switch == True:
+                current_epoch['end'] = t
+                index = len(epochs.index)
+                epochs.loc[index+1]=current_epoch
+
+                switch = False #reset variables
+                length = 0
+                current_epoch = {'epoch': '', 'duration': 0, 'start': 0, 'end': 0}
+                #print 'end ', current_epoch
+
+            if t == len(summary.index)-1 and switch == True: #last generation that is not the end of an epoch
+                current_epoch['end'] = len(summary.index)
+                index = len(epochs.index)
+                epochs.loc[index+1]=current_epoch
+
+            #print 'lags', lags
+        #print 'regime = ', ep,'\n'
+
+    #Once 'epochs' is finished, handle the exceptions:
+    #Take each row, and compare starting generation of an epoch with ending generation of the previous one.
+    #If they are close enough (dictated by epoch_tolerance), join both epochs (rows) as a single one
+
+    #epochs_debug = copy.deepcopy(epochs)#capture for debugging before altering
+    #print epochs_debug
+
+    for i in xrange(2, len(epochs.index)+1): #no zero position considered due to epochs starting at 1 (append coding)
+        regime_t = epochs.epoch[i] #variables from the dataframe to manipulate
+        regime_lag = epochs.epoch[i-1]
+        end_t = epochs.end[i]
+        start_t = epochs.start[i]
+        end_lag = epochs.end[i-1]
+        start_lag = epochs.start[i-1]
+
+        if regime_t == regime_lag and start_t-end_lag <= epoch_window:#if considered as same epoch
+            epochs = epochs.drop(i-1)
+            epochs.loc[i, 'start'] = start_lag
+            epochs.loc[i, 'duration'] = end_t-start_lag #if end_t!=None else len(summary)-start_lag)
+    epochs.index = xrange(1,len(epochs)+1) #make index have standard ascending order
+    return epochs
