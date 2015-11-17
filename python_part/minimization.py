@@ -1,14 +1,3 @@
-'''
-This file keeps the functions required for the minimization of autos. Contains:
-
-new_empty_auto()
-convert_to_canonical(normal_auto)
-    remap(state0, transitions, statemap, nextstate)
-minimized_automaton()
-to_clean_auto(auto_clean)
-
-
-'''
 # Big part of this code (canonical_automaton, remamp function and minimized_auto)is based on Warren's
 # version of Jhon Miller's code, originally in Java.
 
@@ -306,7 +295,7 @@ def create_joint_machine_with_signal(auto0, auto1):
                                             #transitions (first for signal "Heads", then for "Tails")), and
                                             #states (which keeps the individual autos states for use later)
             
-    dtype = [('actions', 'S2'), ('transitions', np.int32, 2),('states', np.int32, 2)]
+    dtype = [('actions', 'S2'), ('transitions', np.int32, 2),('states', np.int32, 2)] #2 is the number of observations (n_obs)
     jm = np.zeros(size, dtype)
     jm['actions'] = 'XX'
     
