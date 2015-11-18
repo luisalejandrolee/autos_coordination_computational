@@ -1,9 +1,12 @@
 # Big part of this code (canonical_automaton, remamp function and minimized_auto)is based on Warren's
 # version of Jhon Miller's code, originally in Java.
-
+from __future__ import division
 import pandas as pd
 import numpy as np
 import copy
+import random
+
+
 
 # Create an empty auto as a numpy array
 def new_empty_auto(n_obs, n_states):
@@ -406,3 +409,29 @@ def epoch_matrix(summary,regime,epoch_window,epoch_tolerance):
             epochs.loc[i, 'duration'] = end_t-start_lag #if end_t!=None else len(summary)-start_lag)
     epochs.index = xrange(1,len(epochs)+1) #make index have standard ascending order
     return epochs
+
+def prob_density_function_joint_machine_with_signal(auto,tt,repeats):
+    #auto: the joint machine to get the pdf from. Each state must have the form [('action),('transition0,transition1")],
+    #where transitions have to be exactly two (one for each signal, say "heads" or "tails")
+    #tt: number of consequent signals the machine will take, starting in state 0. This is one "signal streak"
+    #repeats: will take this number of "signal streaks" (to avoid having 0% on states that have positive but low
+    #probability to be visited, and are not in the cycle of the machine)
+    
+    #Returns pdf, which contains, for each state of the given joint machine, the action and the expected probability
+    #that the machine is in that particular state.
+    
+    states_counter = [0 for i in xrange(len(auto))]
+    
+    for r in xrange(repeats):
+        current_state=0
+        for t in xrange(tt):
+            states_counter[current_state] += 1 #add counter to current (used) state
+            signal = random.choice([0,1]) #50% choose signal=0 (equivalent to "Heads"), 50% signal=1 (equivalent to "Tails")
+            next_state = auto[current_state][1][signal] #go to auto current state, and select transition given on the signal
+            current_state = next_state
+
+    states_perc = [st/(tt*repeats) for st in states_counter]
+    actions = [s[0] for s in auto]
+    pdf = zip(actions,states_perc)
+    return pdf
+
