@@ -772,8 +772,6 @@ end
 
 
 
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 794
@@ -853,7 +851,7 @@ INPUTBOX
 374
 165
 rounds
-20
+50
 1
 0
 Number
@@ -1087,7 +1085,7 @@ INPUTBOX
 255
 465
 files-name-modifier
-trial1
+signalce1
 1
 0
 String
@@ -2541,6 +2539,45 @@ NetLogo 5.2.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="N-parents">
       <value value="20"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="no behaviour output (only print through code)" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="2000"/>
+    <enumeratedValueSet variable="n-signals">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="game-to-play">
+      <value value="&quot;battle-of-sexes&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-parents">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="n-signal-cards">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="n-internal-states">
+      <value value="8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="rounds">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="print?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="n-populations">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="files-name-modifier">
+      <value value="&quot;signalce1&quot;"/>
+      <value value="&quot;signalce2&quot;"/>
+      <value value="&quot;signalce3&quot;"/>
+      <value value="&quot;signalce4&quot;"/>
+      <value value="&quot;signalce5&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N">
+      <value value="40"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
