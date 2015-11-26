@@ -435,10 +435,10 @@ def prob_density_function_joint_machine_with_signal(auto,tt,repeats):
     pdf = zip(actions,states_perc)
     return pdf
 
-def import_no_signal_2000_gens_runs(experiment_clues, file_types, python_folder,\
+def import_processed_runs(experiment_clues, file_types, python_folder,\
                                     n_states , n_signals, n_rounds, N, n_parents):
     
-    no_signal_shorts = {} #dictionary will contain all dataframes imported
+    data = {} #dictionary will contain all dataframes imported
     for i,clue in enumerate(experiment_clues, 1): #experiments named 'experiment_clue'_i (from 1 to 5) 
         for content,variable in file_types.iteritems(): #iteritems gets key and data from dictionary
             experiment_globals = (content, clue ,n_states , n_signals, n_rounds, N, n_parents) #Save them as a list
@@ -446,5 +446,5 @@ def import_no_signal_2000_gens_runs(experiment_clues, file_types, python_folder,
             
             df = pd.read_csv(file_name)
             df = df.drop('Unnamed: 0',1) #clean repeated index
-            no_signal_shorts['%s%s'%(variable, i)] = df #add to dataframe to a dictionary
-    return no_signal_shorts
+            data['%s%s'%(variable, i)] = df #add to dataframe to a dictionary
+    return data
