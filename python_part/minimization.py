@@ -434,17 +434,3 @@ def prob_density_function_joint_machine_with_signal(auto,tt,repeats):
     actions = [s[0] for s in auto]
     pdf = zip(actions,states_perc)
     return pdf
-
-def import_processed_runs(experiment_clues, file_types, python_folder,\
-                                    n_states , n_signals, n_rounds, N, n_parents):
-    
-    data = {} #dictionary will contain all dataframes imported
-    for i,clue in enumerate(experiment_clues, 1): #experiments named 'experiment_clue'_i (from 1 to 5) 
-        for content,variable in file_types.iteritems(): #iteritems gets key and data from dictionary
-            experiment_globals = (content, clue ,n_states , n_signals, n_rounds, N, n_parents) #Save them as a list
-            file_name = python_folder+"%s_%s_states_%s_signal_%s_rounds_%s_N_%s_parents_%s.txt" % experiment_globals
-            
-            df = pd.read_csv(file_name)
-            df = df.drop('Unnamed: 0',1) #clean repeated index
-            data['%s%s'%(variable, i)] = df #add to dataframe to a dictionary
-    return data
