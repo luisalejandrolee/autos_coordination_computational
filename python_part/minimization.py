@@ -178,9 +178,9 @@ def minimize_joint_machine_no_signal(mm):
     #Then the final state is linked to transition towards the one where the cycle starts.
 
     #Create transition structure
-    tstates = mm["metastate"] + 1 #number of states of the metamachine (mm)
+    tstates = mm["metastate"]#number of states of the metamachine (mm)
     trans = [st+1 for st in xrange(tstates)]
-    trans[mm["metastate"]] = mm["cyclestart"]
+    trans[mm["metastate"]-1] = mm["cyclestart"]
     #print "trans = ", trans, "\n"
 
     #Create tstates*tstates equivalence matrix
