@@ -434,15 +434,3 @@ def prob_density_function_joint_machine_with_signal(auto,tt,repeats):
     actions = [s[0] for s in auto]
     pdf = zip(actions,states_perc)
     return pdf
-
-def find_between( s, first, last ):
-    try:
-        start = s.index( first ) + len( first )
-        end = s.index( last, start )
-        return s[start:end]
-    except ValueError:
-        return ""
-
-def get_high_pdf_states(pdf,threshold=0.1):
-    pdf_high=[st for st in pdf if st[1]>threshold]
-    return pdf_high
