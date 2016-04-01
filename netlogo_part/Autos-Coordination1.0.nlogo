@@ -771,7 +771,6 @@ end
 
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 794
@@ -973,7 +972,7 @@ CHOOSER
 game-to-play
 game-to-play
 "prisoner-dilemma" "battle-of-sexes" "two-worlds-BOS-test" "chicken"
-1
+2
 
 SLIDER
 415
@@ -1085,7 +1084,7 @@ INPUTBOX
 255
 465
 files-name-modifier
-signalce1
+two_worlds_test
 1
 0
 String
@@ -2544,12 +2543,12 @@ NetLogo 5.2.0
   <experiment name="no behaviour output (only print through code)" repetitions="1" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="2000"/>
+    <timeLimit steps="200"/>
     <enumeratedValueSet variable="n-signals">
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="game-to-play">
-      <value value="&quot;battle-of-sexes&quot;"/>
+      <value value="&quot;two-worlds-BOS-test&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="N-parents">
       <value value="20"/>
@@ -2570,11 +2569,7 @@ NetLogo 5.2.0
       <value value="2"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="files-name-modifier">
-      <value value="&quot;signalce1&quot;"/>
-      <value value="&quot;signalce2&quot;"/>
-      <value value="&quot;signalce3&quot;"/>
-      <value value="&quot;signalce4&quot;"/>
-      <value value="&quot;signalce5&quot;"/>
+      <value value="&quot;two_worlds_test&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="N">
       <value value="40"/>
